@@ -18,8 +18,6 @@ class BinaryBoostingClassifier(BaseEstimator, ClassifierMixin):
         self.estimators_ = []
 
     def loss_grad(self, original_y, pred_y):
-        # Вычислите градиент на кажом объекте
-        ### YOUR CODE ###
         grad = None
 
         return grad
