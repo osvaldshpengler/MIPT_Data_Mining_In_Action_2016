@@ -35,36 +35,15 @@ class LogisticRegression:
         # Run stochastic gradient descent to optimize W
         self.loss_history = []
         for it in xrange(num_iters):
-            #########################################################################
-            # TODO:                                                                 #
-            # Sample batch_size elements from the training data and their           #
-            # corresponding labels to use in this round of gradient descent.        #
-            # Store the data in X_batch and their corresponding labels in           #
-            # y_batch; after sampling X_batch should have shape (batch_size, dim)   #
-            # and y_batch should have shape (batch_size,)                           #
-            #                                                                       #
-            # Hint: Use np.random.choice to generate indices. Sampling with         #
-            # replacement is faster than sampling without replacement.              #
-            #########################################################################
             idx = np.random.choice(num_train, batch_size)
             X_batch = X[idx]
             y_batch = y[idx]
-            #########################################################################
-            #                       END OF YOUR CODE                                #
-            #########################################################################
 
             # evaluate loss and gradient
             loss, gradW = self.loss(X_batch, y_batch, reg)
             self.loss_history.append(loss)
             # perform parameter update
-            #########################################################################
-            # TODO:                                                                 #
-            # Update the weights using the gradient and the learning rate.          #
-            #########################################################################
             self.w = self.w - learning_rate * gradW
-            #########################################################################
-            #                       END OF YOUR CODE                                #
-            #########################################################################
 
             if verbose and it % 100 == 0:
                 print 'iteration %d / %d: loss %f' % (it, num_iters, loss)
@@ -86,17 +65,10 @@ class LogisticRegression:
         """
         if append_bias:
             X = LogisticRegression.append_biases(X)
-        ###########################################################################
-        # TODO:                                                                   #
-        # Implement this method. Store the probabilities of classes in y_proba.   #
-        # Hint: It might be helpful to use np.vstack and np.sum                   #
-        ###########################################################################
         prob_class_1 = self._sigmoid_(X)
         prob_class_0 = 1 - prob_class_1
         y_proba = np.hstack((np.reshape(prob_class_0, (-1, 1)), np.reshape(prob_class_1, (-1, 1))))
-        ###########################################################################
-        #                           END OF YOUR CODE                              #
-        ###########################################################################
+
         return y_proba
 
     def predict(self, X):
@@ -112,17 +84,10 @@ class LogisticRegression:
           class.
         """
 
-        ###########################################################################
-        # TODO:                                                                   #
-        # Implement this method. Store the predicted labels in y_pred.            #
-        ###########################################################################
         y_proba = self.predict_proba(X, append_bias=True)
         y_pred = y_proba[:, 0] < y_proba[:, 1]
         y_pred = y_pred.astype(int)
 
-        ###########################################################################
-        #                           END OF YOUR CODE                              #
-        ###########################################################################
         return y_pred
 
     def loss(self, X_batch, y_batch, reg):

@@ -5,6 +5,7 @@ import numpy as np
 from copy import deepcopy
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.base import ClassifierMixin, BaseEstimator
+from scipy.special import expit
 
 
 class BinaryBoostingClassifier(BaseEstimator, ClassifierMixin):
@@ -18,21 +19,20 @@ class BinaryBoostingClassifier(BaseEstimator, ClassifierMixin):
         self.estimators_ = []
 
     def loss_grad(self, original_y, pred_y):
-        grad = None
+        grad = original_y * expit(-original_y * pred_y)
 
         return grad
 
     def fit(self, X, original_y):
-        # Храните базовые алгоритмы тут
-        self.estimators_ = []
+        base_est = BaseEstimator()
+        base_est.predict = lambda X: np.zeros(X.shape[0], dtype=float)
+        self.estimators_ = [base_est]
 
         for i in range(self.n_estimators):
             grad = self.loss_grad(original_y, self._predict(X))
-            # Настройте базовый алгоритм на градиент, это классификация или регрессия?
-            ### YOUR CODE ###
-            estimator = None
+            estimator = deepcopy(self.base_regressor)
+            estimator.fit(X, grad)
 
-            ### END OF YOUR CODE
             self.estimators_.append(estimator)
 
         self.out_ = self._outliers(grad)
@@ -41,29 +41,24 @@ class BinaryBoostingClassifier(BaseEstimator, ClassifierMixin):
         return self
 
     def _predict(self, X):
-        # Получите ответ композиции до применения решающего правила
-        ### YOUR CODE ###
-        y_pred = None
+        y_pred = np.sum(map(lambda est: self.lr*est.predict(X), self.estimators_), axis=0)
 
         return y_pred
 
     def predict(self, X):
-        # Примените к self._predict решающее правило
-        ### YOUR CODE ###
-        y_pred = None
+        y_pred = np.sign(self._predict(X))
 
-        return y_pred
+        return np.array(y_pred)
 
     def _outliers(self, grad):
-        # Топ-10 объектов с большим отступом
-        ### YOUR CODE ###
-        _outliers = None
+        sorted_idx = grad.argsort()
+        _outliers = sorted_idx[0:10].tolist() + sorted_idx[-10:].tolist()
 
         return _outliers
 
     def _calc_feature_imps(self):
-        # Посчитайте self.feature_importances_ с помощью аналогичных полей у базовых алгоритмов
-        f_imps = None
-        ### YOUR CODE ###
+        f_imps = self.estimators_[1].feature_importances_
+        for est in self.estimators_[2:]:
+            f_imps += est.feature_importances_
 
-        return f_imps/len(self.estimators_)
+        return f_imps / len(self.estimators_)
